@@ -4,9 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "frontend": "cd frontend && bun run dev",
-    "backend": "cd backend && python manage.py runserver",
-    "dev": "concurrently \"bun run frontend\" \"bun run backend\""
+    "dev": "bun run index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
