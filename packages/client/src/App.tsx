@@ -2,10 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Footer from './components/ui/Footer';
 import ChatGateway from './components/ui/ChatGateway';
 import NavBar from './components/ui/NavBar';
-import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Properties from './pages/Properties';
+import Home from './components/pages/Home';
+import About from './components/pages/About';
+import Products from './components/pages/Products.tsx';
 
 function App() {
    return (
@@ -16,8 +15,7 @@ function App() {
                <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/properties" element={<Properties />} />
+                  <Route path="/Products" element={<Products />} />
                </Routes>
                <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
                   <div className="overflow-hidden rounded-2xl bg-white shadow-md transition duration-300 hover:shadow-xl">

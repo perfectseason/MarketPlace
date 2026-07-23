@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import logo from '../../assets/products/logo.jpg';
+import Mlogo from '../../assets/Mlogo.png';
 
 const navLinks = [
    { label: 'Home', to: '/' },
@@ -9,7 +9,7 @@ const navLinks = [
    { label: 'Contact', to: '/contact' },
 ];
 
-const Navbar = () => {
+const NavBar = () => {
    const [isOpen, setIsOpen] = useState(false);
 
    const navButtonClass = ({ isActive }: { isActive: boolean }) =>
@@ -25,13 +25,13 @@ const Navbar = () => {
          <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <Link
                to="/"
-               aria-label="Perfect Homes home"
+               aria-label="Market Place home"
                className="flex shrink-0 items-center"
                onClick={() => setIsOpen(false)}
             >
                <img
-                  src={logo}
-                  alt="Perfect Homes logo"
+                  src={Mlogo}
+                  alt="Mlogo"
                   className="h-9 w-9 rounded-full border border-slate-200 object-cover shadow-sm"
                />
             </Link>
@@ -41,7 +41,7 @@ const Navbar = () => {
                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-center text-base font-bold uppercase tracking-wide text-slate-950 sm:text-xl"
                onClick={() => setIsOpen(false)}
             >
-               Perfect Homes
+               Market Place
             </Link>
 
             <div className="hidden items-center gap-2 md:flex">
@@ -91,4 +91,4 @@ const Navbar = () => {
    );
 };
 
-export default Navbar;
+export default NavBar;
