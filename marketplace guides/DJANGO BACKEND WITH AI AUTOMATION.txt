@@ -1,0 +1,935 @@
+Yes. Below is a production-oriented architecture for a Django backend that exposes a clean chatbot API. The example uses the official OpenAI Python SDK, but the service layer is designed so you can swap in another provider later with minimal changes.
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+Project structure
+
+
+project/
+│
+├── config/
+│   ├── settings.py
+│   ├── urls.py
+│   └── ...
+│
+├── chatbot/
+│   ├── migrations/
+│   ├── services.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── exceptions.py
+│   └── prompts.py
+│
+├── requirements.txt
+└── .env
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+Install packages
+
+> pip install django djangorestframework openai python-decouple
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+settings.py
+
+from decouple import config
+
+OPENAI_API_KEY = config("OPENAI_API_KEY")
+
+INSTALLED_APPS = [
+    ...
+    "rest_framework",
+    "chatbot",
+]
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": (
+        "rest_framework.renderers.JSONRenderer",
+    ),
+}
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+.env
+
+OPENAI_API_KEY=your_api_key_here
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+prompts.py
+
+SYSTEM_PROMPT = """
+You are a professional AI medical receptionist.
+
+Responsibilities:
+
+- Welcome patients.
+- Answer administrative questions.
+- Help patients schedule appointments.
+- Explain clinic services.
+- Never diagnose diseases.
+- Never prescribe medication.
+- If symptoms appear serious, advise the patient to contact emergency services or visit the nearest hospital immediately.
+- Be concise, friendly and professional.
+"""
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+serializers.py
+
+
+from rest_framework import serializers
+
+
+class ChatSerializer(serializers.Serializer):
+    message = serializers.CharField(
+        max_length=3000,
+        trim_whitespace=True
+    )
+
+    conversation = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        default=[]
+    )
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+services.py
+
+from openai import OpenAI
+from django.conf import settings
+from .prompts import SYSTEM_PROMPT
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+class ChatbotService:
+
+    @staticmethod
+    def generate(message, history=None):
+
+        history = history or []
+
+        messages = [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            }
+        ]
+
+        messages.extend(history)
+
+        messages.append({
+            "role": "user",
+            "content": message
+        })
+
+        response = client.chat.completions.create(
+            model="gpt-5.5",
+            messages=messages,
+            temperature=0.4,
+        )
+
+        return response.choices[0].message.content
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+exceptions.py
+
+
+from rest_framework.views import exception_handler
+
+
+def custom_exception_handler(exc, context):
+
+    response = exception_handler(exc, context)
+
+    if response is not None:
+        response.data = {
+            "success": False,
+            "errors": response.data
+        }
+
+    return response
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+Add to settings.py:
+
+
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "chatbot.exceptions.custom_exception_handler"
+}
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+views.py
+
+
+import logging
+
+from openai import APIError
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .serializers import ChatSerializer
+from .services import ChatbotService
+
+logger = logging.getLogger(__name__)
+
+
+class ChatbotAPIView(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+
+        serializer = ChatSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+
+            reply = ChatbotService.generate(
+                serializer.validated_data["message"],
+                serializer.validated_data.get("conversation")
+            )
+
+            return Response(
+                {
+                    "success": True,
+                    "reply": reply
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except APIError as e:
+
+            logger.exception(e)
+
+            return Response(
+                {
+                    "success": False,
+                    "message": "AI service unavailable."
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+        except Exception as e:
+
+            logger.exception(e)
+
+            return Response(
+                {
+                    "success": False,
+                    "message": "Internal server error."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+urls.py
+
+
+
+from django.urls import path
+from .views import ChatbotAPIView
+
+urlpatterns = [
+    path("chat/", ChatbotAPIView.as_view(), name="chat"),
+]
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+Project urls:
+
+
+urlpatterns = [
+    path("api/", include("chatbot.urls")),
+]
+
+
+----------------------------------------------------------------------------------------------------------------------------
+
+
+Request
+
+POST /api/chat/
+Content-Type: application/json
+
+
+------------------------------------------------------------------------------------------------------------------------------
+JSON
+
+
+{
+    "message": "I'd like to book an appointment with a cardiologist.",
+    "conversation": [
+        {
+            "role": "assistant",
+            "content": "Hello! How may I help you today?"
+        }
+    ]
+}
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Response
+
+JSON
+
+{
+    "success": true,
+    "reply": "Certainly! I can help with that. Please tell me your preferred date and time, and I'll assist you in scheduling a cardiology appointment."
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+Production improvements
+
+
+For a production deployment, I recommend adding:
+
+> JWT authentication (if chats are tied to logged-in users).
+
+> Per-user and per-IP rate limiting (e.g., django-ratelimit or DRF throttling).
+
+> Structured logging with request IDs.
+
+> Conversation persistence in PostgreSQL (models for conversations and messages).
+
+> Streaming responses using Server-Sent Events (SSE) or WebSockets for a more responsive UI.
+
+> Asynchronous processing with Celery for long-running tasks.
+
+> Retry logic with exponential backoff for transient AI API failures.
+
+> Input sanitization and prompt-injection mitigation.
+
+> Token counting and conversation trimming to stay within model context limits.
+
+> Usage analytics and monitoring (e.g., Sentry, Prometheus, OpenTelemetry).
+
+> Environment-specific configuration and secret management.
+
+> Comprehensive automated tests (unit, integration, and API tests).
+
+> CORS configuration and CSRF protection appropriate to your frontend architecture.
+
+- With those additions, the backend will be robust enough to support a production React/Vite frontend while remaining maintainable and scalable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+QUESTION AND ANSWER
+
+
+
+{where to fix or write this? model: 'gpt-5o-min', input: prompt, temperature: 0.2, max_output_tokens: 100 } res.json({ message: response.output_text })
+
+
+
+
+ANSWER
+
+The code you posted is Node.js/Express, not Django.
+
+model: 'gpt-5o-min',
+input: prompt,
+temperature: 0.2,
+max_output_tokens: 100
+
+---------------------------------------------------------------------------------------------------------------------------
+
+
+
+Since you're building a Django REST Framework backend, this belongs in your service layer, not in a view as Express code.
+
+
+
+If you're using Django
+
+It should go inside chatbot/services.py.
+
+
+Example:
+
+
+from openai import OpenAI
+from django.conf import settings
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+class ChatbotService:
+
+    @staticmethod
+    def generate(prompt):
+
+        response = client.responses.create(
+            model="gpt-5o-mini",
+            input=prompt,
+            temperature=0.2,
+            max_output_tokens=100,
+        )
+
+        return response.output_text
+
+------------------------------------------------------------------------------------------------------------------
+
+Then your views.py becomes:
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from .serializers import ChatSerializer
+from .services import ChatbotService
+
+
+class ChatbotAPIView(APIView):
+
+    def post(self, request):
+
+        serializer = ChatSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reply = ChatbotService.generate(
+            serializer.validated_data["message"]
+        )
+
+        return Response({
+            "success": True,
+            "message": reply
+        })
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+Notice how this replaces the Express line:
+
+
+res.json({
+    message: response.output_text
+
+---------------------------------------------------------------------------------------
+
+with the Django equivalent:
+
+
+return Response({
+    "success": True,
+    "message": reply
+})
+
+
+
+---------------------------------------------------------------------------------------------------
+
+Where each piece belongs
+
+
+chatbot/
+│
+├── services.py      ← AI/OpenAI logic
+├── serializers.py   ← Validate input
+├── views.py         ← Receive request and return response
+├── urls.py          ← API endpoint
+└── prompts.py       ← System prompt
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+Recommended Project Structure
+
+
+
+backend/
+│
+├── config/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── logging.py
+│   └── ...
+│
+├── apps/
+│   ├── chatbot/
+│   │   ├── migrations/
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   ├── services.py
+│   │   ├── prompts.py
+│   │   ├── permissions.py
+│   │   ├── throttles.py
+│   │   ├── exceptions.py
+│   │   ├── utils.py
+│   │   └── admin.py
+│   │
+│   ├── accounts/
+│   ├── appointments/
+│   └── patients/
+│
+├── requirements.txt
+├── .env
+└── manage.py
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+Database Design
+
+Instead of sending the conversation from React every time, store it.
+
+Conversation Model
+
+
+class Conversation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+Message Model
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
+
+    role = models.CharField(max_length=20)
+
+    content = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+Now every chat is permanently stored.
+
+
+Serializer
+
+
+class ChatSerializer(serializers.Serializer):
+
+    conversation_id = serializers.IntegerField()
+
+    message = serializers.CharField(
+        max_length=4000,
+        trim_whitespace=True
+    )
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+Service Layer
+
+Your AI logic belongs here.
+
+
+
+class ChatbotService:
+
+    def generate(conversation, prompt):
+
+        history = []
+
+        for message in conversation.messages.all():
+
+            history.append({
+                "role": message.role,
+                "content": message.content
+            })
+
+        history.append({
+            "role": "user",
+            "content": prompt
+        })
+
+        response = client.responses.create(
+            model="gpt-5.5",
+            input=history,
+            temperature=0.2
+        )
+
+        return response.output_text
+
+
+
+Notice that the view knows nothing about OpenAI.
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+View
+
+The view should only:
+
+> Validate
+
+> Call service
+
+> Save database
+
+> Return JSON
+
+Nothing more.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Error Handling
+
+Create one centralized exception handler.
+
+
+try:
+    ...
+except AuthenticationError:
+    ...
+
+except RateLimitError:
+    ...
+
+except APIConnectionError:
+    ...
+
+except Exception:
+    ...
+
+------------------------------------------------------------------------------------------------------------------------
+
+Authentication
+
+
+
+Use JWT.
+
+POST /api/token/
+
+POST /api/token/refresh/
+
+Authorization:
+
+Bearer eyJ...
+
+
+Each patient only sees their own conversations.
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+Rate Limiting
+
+
+Use DRF throttling.
+
+
+Example:
+
+
+60 requests/minute
+
+
+Stops abuse.
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+Logging
+
+
+Log every request.
+
+
+User ID
+
+Conversation
+
+Prompt
+
+Model
+
+Tokens
+
+Latency
+
+Cost
+
+IP
+
+Status
+
+
+Very useful later.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Prompt File
+
+Don't hardcode prompts.
+
+
+
+prompts.py
+
+
+SYSTEM_PROMPT = """
+You are the receptionist of ABC Medical Centre.
+
+You may:
+
+✔ Schedule appointments
+
+✔ Answer FAQs
+
+✔ Explain hospital services
+
+✔ Direct emergencies
+
+You MUST NEVER diagnose diseases.
+"""
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+
+Environment Variables
+
+
+OPENAI_API_KEY=
+
+OPENAI_MODEL=gpt-5.5
+
+TEMPERATURE=0.2
+
+MAX_TOKENS=500
+
+TIMEOUT=30
+
+
+Never hardcode.
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+React Request
+
+
+
+await axios.post("/api/chat/", {
+
+    conversation_id,
+
+    message
+
+})
+
+
+
+That's all.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Response
+
+
+{
+    "success": true,
+    "message": "Good afternoon! I'd be happy to help you book an appointment. What date works best for you?",
+    "conversation_id": 17
+}
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Later Features
+
+
+
+Very easy to add:
+
+✔ Voice input
+
+✔ Speech output
+
+✔ Appointment booking
+
+✔ File uploads
+
+✔ Image analysis
+
+✔ Prescription upload
+
+✔ PDF summaries
+
+✔ Email notifications
+
+✔ WhatsApp integration
+
+✔ SMS reminders
+
+✔ Doctor handoff
+
+✔ Live receptionist takeover
+
+✔ Multiple AI models
+
+✔ Analytics dashboard
+
+✔ Audit logs
+
+✔ HIPAA/GDPR-style compliance features (as applicable to your jurisdiction)
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Architecture Diagram
+
+
+                React + Vite
+                     │
+                     │
+          POST /api/chat/
+                     │
+                     ▼
+           Django REST View
+                     │
+          Validate Serializer
+                     │
+                     ▼
+           ChatbotService
+                     │
+          Build Prompt + History
+                     │
+                     ▼
+          OpenAI Responses API
+                     │
+               AI Response
+                     │
+                     ▼
+      Save Messages to PostgreSQL
+                     │
+                     ▼
+             JSON Response
+                     │
+                     ▼
+                React Chat UI
+
+
+
+
+
+
+
+
+
+One recommendation before you start
+
+Given your experience building full-stack applications with Django and React, I recommend building this in stages rather than trying to implement every feature at once:
+
+
+
+Phase 1: Authentication (JWT) + Chat API + Database models.
+
+Phase 2: Conversation history, rate limiting, logging, and prompt management.
+
+Phase 3: Appointment scheduling integrated with your Django models and AI function-calling.
+
+Phase 4: Streaming responses, voice input/output, notifications, and deployment.
+
+
+This approach gives you a maintainable codebase and lets you test each layer before adding more complexity.
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+

@@ -37,8 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
+    'rest_framework',
     'corsheaders',
-    "django_toolbar",
+    "debug_toolbar",
+    'shop',
+    'store',
+    'tags',
+    'likes',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +71,12 @@ INTERNAL_IPS = [
     # ...
 ]
 
+
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING' : False,
+    'PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE' : 10
+}
 
 
 
@@ -116,6 +129,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+AUTH_USER_MODEL = 'core_User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
