@@ -1,157 +1,223 @@
-from django.contrib import admin, messages
-from django.db.models.aggregates import Count
-from django.urls import reverse
-from django.utils.html import format_html, urlencode
-from django.views import View
-from . import models
+from uuid import uuid4
+from django.conf import settings
+from django.contrib import admin
+from django.core.validators import MinValueValidator
+from django.db import models
 
+class Promotion(models.Model):
+   description = models.CharField(max_length=255)
+   discount = models.FloatField()
 
-class InventoryFilter(admin.SimpleListFilter):
-    title = 'inventory'
-    parameter_name = 'inventory'
-
-    def lookups(self, request, model_admin):
-        return [
-            ('<10', 'LOW'),
-            ('<=7days', 'past 7 days')
-        ]
-
-
-@admin.register(models.Product)
-class ProductAdmin(admin.ModelAdmin):
-    actions = ['clear_inventory']
-    list_display = ['title', 'unit_price', 'inventory_status', 'collection']
-    list_editable = ['unit_price']
-    list_filter = ['collection', 'last_update', 'InventoryFilter']
-    list_per_page = 10
-    ordering = ['title']
-    search_fields = ['title_istartswith']
-
-    @admin.display(ordering='inventory')
-    def inventory_status(self, product):
-        if product.inventory < 10:
-            return 'Low'
-        return 'OK'
-
-    @admin.action(description='clear inventory')
-    def clear_inventory(self, request, queryset):
-        updated_count = queryset.update(inventory=0)
-        self.message_user(
-            request,
-            f'{updated_count} products were succesfullu updated.'
-            message=ERROR
-        )
-
-
-
-class Prooduct(models.Model):
-    title = models.CharField(max_length=255)
-    slug = models.SlugField()
-    Unit_price = models.DecimalField(max_degits=6 decimaal_point=2)
-    description = models.TextField(null=True, blank=True)
-    unit_price = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        validators=[MinValueValidator(1)]
-    )
-    inventory = models.IntergerField(validators=[MinValidator(0)])
-    last_update = models.DateTimeField(auto_now=True)
-    Collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
-    promotions = models.ManyToManyField(promotions, blank=True)
-
-    def __str__(self) -> str:
-
-
-
-@admin.register(models.Customer)
-class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'membership', viewing_orders]
-    list_editable = ['membership']
-    ordering = ['first_name', 'last_name']
-    list_per_page = 10
-    list_select_related = ['collection']
-    search_fields = ['first_name__istartswith', 'last_name__istartswith']
-
-
-    def collection_title(self, product):
-        return product.collection.title
-
-    @admin.display(ordering='viewing_orders')
-    def viewing_orders(self, customer):
-        url = (reverse('admin.store_customer_changelist')
-               + '?'
-               + urlencode({
-                   'customer_id': str(customer.id)
-               }))
-        return format_html('<a href="{}">{}</a>', url, customer.viewing_orders)
-     
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).annotate(
-            viewing_orders=View('orders')
-        ) 
-
-
-@admin.register(models.Collection)
-class CollectionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'products_count']
-    search_fields = ['product__istartswith']
-    
-
-    @admin.display(ordering='products_count')
-    def products_count(self, collection):
-        url = (reverse('admin:store_product_changelist')
-               + '?'
-               + urlencode({
-                   'collection_id': str(collection.id)
-               }))
-        return format_html('<a href="{}">{}</a>', url, collection.products_count)
-    
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).annotate(
-            products_count=Count('product')
-        )
-
-
-
-
-@admin.register(models.Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'placed_at', 'customer']
-
+   def __str__(self):
+      return str(self.description)
 
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
     featured_product = models.ForeignKey(
-        'Product', on_delete=models.SET_NULL, null=True, related_name='Product'
+    "Product",
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="+",
     )
-    def __str__(self) -> str:
-        return self.title
+
+
+    def __str__(self):
+        return str(self.title)
 
     class Meta:
-        ordering = ['title']
+        ordering = ["title"]
 
+
+class Product(models.Model):
+    title = models.CharField(max_length=255)
+    slug = models.SlugField()
+    description = models.TextField(null=True, blank=True)
+    unit_price = models.DecimalField(
+    max_digits=6,
+    decimal_places=2,
+    validators=[MinValueValidator(1)],
+    )
+    inventory = models.IntegerField(
+    validators=[MinValueValidator(0)],
+    )
+    last_update = models.DateTimeField(auto_now=True)
+
+
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.PROTECT,
+        related_name="products",
+    )
+
+    promotions = models.ManyToManyField(
+        Promotion,
+        blank=True,
+    )
+
+    def __str__(self):
+        return str(self.title)
+
+    class Meta:
+        ordering = ["title"]
+
+
+class Customer(models.Model):
+    MEMBERSHIP_BRONZE = "B"
+    MEMBERSHIP_SILVER = "S"
+    MEMBERSHIP_GOLD = "G"
+
+
+    MEMBERSHIP_CHOICES = [
+        (MEMBERSHIP_BRONZE, "Bronze"),
+        (MEMBERSHIP_SILVER, "Silver"),
+        (MEMBERSHIP_GOLD, "Gold"),
+    ]
+
+    phone = models.CharField(max_length=255)
+    birth_date = models.DateField(null=True, blank=True)
+    membership = models.CharField(
+        max_length=1,
+        choices=MEMBERSHIP_CHOICES,
+        default=MEMBERSHIP_BRONZE,
+    )
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        first_name = getattr(self.user, "first_name", "")
+        last_name = getattr(self.user, "last_name", "")
+        return f"{first_name} {last_name}".strip()
+
+    @admin.display(ordering="user__first_name")
+    def first_name(self):
+        return getattr(self.user, "first_name", "")
+
+    @admin.display(ordering="user__last_name")
+    def last_name(self):
+        return getattr(self.user, "last_name", "")
+
+    class Meta:
+        ordering = ["user__first_name", "user__last_name"]
+        permissions = [
+            ("view_history", "Can view history"),
+        ]
+
+
+class Order(models.Model):
+    PAYMENT_STATUS_PENDING = "P"
+    PAYMENT_STATUS_COMPLETE = "C"
+    PAYMENT_STATUS_FAILED = "F"
+
+    PAYMENT_STATUS_CHOICES = [
+        (PAYMENT_STATUS_PENDING, "Pending"),
+        (PAYMENT_STATUS_COMPLETE, "Complete"),
+        (PAYMENT_STATUS_FAILED, "Failed"),
+    ]
+
+    placed_at = models.DateTimeField(auto_now_add=True)
+
+    payment_status = models.CharField(
+        max_length=1,
+        choices=PAYMENT_STATUS_CHOICES,
+        default=PAYMENT_STATUS_PENDING,
+    )
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        permissions = [
+            ("cancel_order", "Can cancel order"),
+        ]
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+    Order,
+    on_delete=models.PROTECT,
+    related_name="items",
+    )
+
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="orderitems",
+    )
+
+    quantity = models.PositiveSmallIntegerField()
+
+    unit_price = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+    )
+
+
+class Address(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+    )
 
 
 class Cart(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4 )
+    id = models.UUIDField(
+    primary_key=True,
+    default=uuid4,
+    editable=False,
+    )
+
+
     created_at = models.DateTimeField(auto_now_add=True)
 
+
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntergerField()
+    cart = models.ForeignKey(
+        Cart,
+        
+    on_delete=models.CASCADE,
+    related_name="items",
+    )
+
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+    )
+
+    quantity = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+    )
 
     class Meta:
-        unique_together = [['cart', 'product']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cart", "product"],
+                name="unique_cart_product",
+            )
+        ]
+
 
 class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    product = models.ForeignKey(
+    Product,
+    on_delete=models.CASCADE,
+    related_name="reviews",
+    )
+
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateField(auto_now_add=True)
-
-
 
