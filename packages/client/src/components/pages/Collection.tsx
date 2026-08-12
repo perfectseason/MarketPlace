@@ -1,11 +1,11 @@
 import ChatBot from '../chat/ChatBot';
 
-const About = () => {
+const Collection = () => {
    return (
       <>
          <section className="min-h-screen bg-white">
             <div className="max-w-5xl mx-auto px-6 py-20">
-               <h1 className="text-2xl font-bold text-gray-800">About Us</h1>
+               <h1 className="text-2xl font-bold text-gray-800">Collection</h1>
 
                <p className="mt-6 text-gray-600 leading-relaxed">
                   Perfect Season is committed to delivering top-quality
@@ -46,4 +46,4 @@ const About = () => {
    );
 };
 
-export default About;
+export default Collection;

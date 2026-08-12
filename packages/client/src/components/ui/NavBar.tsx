@@ -4,8 +4,8 @@ import Mlogo from '../../assets/Mlogo.png';
 
 const navLinks = [
    { label: 'Home', to: '/' },
-   { label: 'About', to: '/about' },
-   { label: 'Properties', to: '/properties' },
+   { label: 'Product', to: '/product' },
+   { label: 'Collection', to: '/collection' },
    { label: 'Contact', to: '/contact' },
 ];
 
@@ -21,8 +21,8 @@ const NavBar = () => {
       ].join(' ');
 
    return (
-      <header className="fixed left-0 top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-         <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <header className="fixed left-0 top-0 z-50 w-full border-b border-slate-200 bg-white/80 shadow-sm backdrop-blur">
+         <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between grey-500 gap-3 px-4 sm:px-6 lg:px-8">
             <Link
                to="/"
                aria-label="Market Place home"
@@ -32,7 +32,7 @@ const NavBar = () => {
                <img
                   src={Mlogo}
                   alt="Mlogo"
-                  className="h-9 w-9 rounded-full border border-slate-200 object-cover shadow-sm"
+                  className="h-12 w-12 rounded-full border border-slate-200 object-cover shadow-sm"
                />
             </Link>
 

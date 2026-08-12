@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 
 const footerLinks = [
    { label: 'Home', to: '/' },
-   { label: 'About', to: '/about' },
-   { label: 'Properties', to: '/properties' },
+   { label: 'Product', to: '/Product' },
+   { label: 'Collection', to: '/Collection' },
    { label: 'Contact', to: '/contact' },
 ];
 
@@ -13,7 +13,7 @@ const Footer = () => {
          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
             <div>
                <h2 className="text-xl font-bold uppercase tracking-wide">
-                  Perfect Homes
+                  MARKETPLACE
                </h2>
                <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
                   Simple, trusted real estate support for finding, listing, and
@@ -60,8 +60,7 @@ const Footer = () => {
          </div>
 
          <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-slate-400">
-            &copy; {new Date().getFullYear()} Perfect Homes. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} MARKETPLACE. All rights reserved.
          </div>
       </footer>
    );

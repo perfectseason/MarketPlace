@@ -1,16 +1,28 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// import { StrictMode } from 'react';
+// import { createRoot } from 'react-dom/client';
+// import 'react-loading-skeleton/dist/skeleton.css';
+// import App from './App.tsx';
+// import './index.css';
+
+// const queryClient = new QueryClient();
+
+// createRoot(document.getElementById('root')!).render(
+//    <StrictMode>
+//       <QueryClientProvider client={queryClient}>
+//          <App />
+//       </QueryClientProvider>
+//    </StrictMode>
+// );
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import 'react-loading-skeleton/dist/skeleton.css';
-import App from './App.tsx';
+import App from './App';
 import './index.css';
-
-const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-         <App />
-      </QueryClientProvider>
+      <App />
    </StrictMode>
 );

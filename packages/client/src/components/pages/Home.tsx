@@ -1,181 +1,251 @@
-const ChatGteway = () => (
-   <div className="p-5">
-      <h3 className="text-2xl font-semibold text-center text-gray-800">
-         Talk to our support team.
-      </h3>
+import type { CSSProperties } from 'react';
 
-      <p className="text-gray-600 text-center mt-2">
-         Connect with our support team to find the perfect property or file a
-         complaint.
-      </p>
+type Product = {
+   image: string;
+   name: string;
+   price: string;
+};
 
-      <div className="flex flex-col items-center justify-center">
-         <button className="mt-6 bg-gray-800 text-white px-5 py-3 rounded-lg hover:bg-black transition duration-300">
-            Start Chat
-         </button>
-      </div>
-   </div>
-);
+const featuredProducts: Product[] = [
+   {
+      image: '/images/product1.jpg',
+      name: 'Smart Watch',
+      price: '$120',
+   },
+   {
+      image: '/images/product2.jpg',
+      name: 'Smart Watch',
+      price: '$85',
+   },
+   {
+      image: '/images/product3.jpg',
+      name: 'Smart Watch',
+      price: '$450',
+   },
+];
 
-const Home = () => {
+const electronics: Product[] = [
+   {
+      image: '/images/product4.jpg',
+      name: 'Iphone',
+      price: '$850',
+   },
+   {
+      image: '/images/product5.jpg',
+      name: 'Iphone Pro',
+      price: '$920',
+   },
+   {
+      image: '/images/product6.jpg',
+      name: 'Iphone Mini',
+      price: '$550',
+   },
+   {
+      image: '/images/product7.jpg',
+      name: 'Tablet',
+      price: '$320',
+   },
+];
+
+const fashion: Product[] = [
+   {
+      image: '/images/product8.jpg',
+      name: 'Sun glasses',
+      price: '$95',
+   },
+   {
+      image: '/images/product9.jpg',
+      name: 'Sun glasses',
+      price: '$130',
+   },
+   {
+      image: '/images/product10.jpg',
+      name: 'Watch',
+      price: '$180',
+   },
+   {
+      image: '/images/product11.jpg',
+      name: 'Sun glasses',
+      price: '$110',
+   },
+   {
+      image: '/images/product12.jpg',
+      name: 'Sunglasses',
+      price: '$65',
+   },
+];
+
+const homeCollection: Product[] = [
+   {
+      image: '/images/product13.jpg',
+      name: 'Bag',
+      price: '$440',
+   },
+   {
+      image: '/images/product14.jpg',
+      name: 'Travelers Bag',
+      price: '$570',
+   },
+   {
+      image: '/images/product15.jpg',
+      name: 'Ladies Bag',
+      price: '$320',
+   },
+];
+
+function ProductCard({ product }: { product: Product }) {
    return (
-      <div className="min-h-screen bg-gray-100">
-         {/* Hero Section */}
-         <section
-            className="h-[90vh] bg-cover bg-center flex items-center justify-center relative"
-            style={{
-               backgroundImage:
-                  "url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1600&auto=format&fit=crop')",
-            }}
-         >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/50"></div>
+      <div className="w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+         {' '}
+         <div className="aspect-square w-full overflow-hidden bg-gray-100">
+            {' '}
+            <img
+               src={product.image}
+               alt={product.name}
+               className="h-full w-full object-cover transition duration-500 hover:scale-105"
+            />{' '}
+         </div>
+         <div className="p-4">
+            <h3 className="truncate text-lg font-semibold text-gray-900">
+               {product.name}
+            </h3>
 
-            {/* Hero Content */}
-            <div className="relative text-center text-white px-4">
-               <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                  Find Your Dream Home
-               </h1>
+            <p className="mt-2 text-xl font-bold text-gray-900">
+               {product.price}
+            </p>
 
-               <p className="text-lg md:text-xl mb-6">
-                  Luxury homes, apartments, and properties at the best
-                  locations.
-               </p>
+            <button
+               type="button"
+               className="mt-4 w-full rounded-lg bg-black px-4 py-2 font-medium text-white transition hover:bg-gray-700"
+            >
+               Add to Cart
+            </button>
+         </div>
+      </div>
+   );
+}
 
-               <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg text-lg font-semibold transition duration-300">
-                  Explore Properties
-               </button>
+export default function Home() {
+   const heroStyle: CSSProperties = {
+      backgroundImage: "url('/images/Hero.jpg')",
+   };
+
+   return (
+      <div className="w-full">
+         {/* HERO */}{' '}
+         <section className="relative min-h-screen w-full overflow-hidden">
+            {/* HERO IMAGE */}{' '}
+            <div
+               className="absolute inset-0 bg-cover bg-center bg-no-repeat my-6 mx-4 rounded-sm"
+               style={heroStyle}
+            />
+            {/* HERO FADE / OVERLAY */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
+            {/* HERO CONTENT */}
+            <div className="relative flex min-h-screen items-center p-6 sm:p-10 md:p-16 lg:p-24">
+               <div className="w-full max-w-2xl text-white">
+                  <p className="pt-1 text-sm font-medium uppercase tracking-widest sm:text-base">
+                     New Collection
+                  </p>
+
+                  <h1 className="mt-2 text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl">
+                     Shop Everything
+                  </h1>
+
+                  <p className="mt-3 max-w-md text-sm sm:text-base md:text-lg">
+                     Discover quality products at great prices.
+                  </p>
+
+                  <button
+                     type="button"
+                     className="mt-5 rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200 sm:px-8 sm:py-4"
+                  >
+                     Shop Now
+                  </button>
+               </div>
+            </div>
+            <div className="mt-5 mb-5 w-full text-center text-xl font-bold uppercase tracking-wide text-slate-950 sm:text-2xl">
+               THE LOWEST PRICE EVER
             </div>
          </section>
+         {/* FEATURED PRODUCTS - 3 COLUMNS */}
+         <section className="w-full bg-stone-50 px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+               {featuredProducts.map((product) => (
+                  <div key={product.image} className="w-full min-w-0">
+                     <ProductCard product={product} />
+                  </div>
+               ))}
+            </div>
+         </section>
+         {/* ELECTRONICS - 4 COLUMNS */}
+         <section className="w-full px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+            <h2 className="mb-6 text-2xl font-bold sm:text-3xl">Electronics</h2>
 
-         {/* Property List Section */}
-         <section className="max-w-7xl mx-auto px-6 py-16">
-            <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
-               Featured Properties
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+               {electronics.map((product) => (
+                  <div key={product.image} className="w-full min-w-0">
+                     <ProductCard product={product} />
+                  </div>
+               ))}
+            </div>
+         </section>
+         {/* FASHION - 5 COLUMNS */}
+         <section className="w-full px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+            <h2 className="mb-6 text-2xl font-bold sm:text-3xl">Fashion</h2>
+
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+               {fashion.map((product) => (
+                  <div key={product.image} className="w-full min-w-0">
+                     <ProductCard product={product} />
+                  </div>
+               ))}
+            </div>
+         </section>
+         {/* HOME COLLECTION - 3 PRODUCTS + CHATBOT */}
+         <section className="w-full px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+            <h2 className="mb-6 text-2xl font-bold sm:text-3xl">
+               Home Collection
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               {/* Property Card 1 */}
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <img
-                     src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1200&auto=format&fit=crop"
-                     alt="Property"
-                     className="h-56 w-full object-cover"
-                  />
-
-                  <div className="p-5">
-                     <h3 className="text-2xl font-semibold text-gray-800">
-                        Modern Duplex
-                     </h3>
-
-                     <p className="text-gray-600 mt-2">
-                        4 Bedroom luxury duplex with swimming pool and parking
-                        space.
-                     </p>
-
-                     <button className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                        View Details
-                     </button>
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+               {homeCollection.map((product) => (
+                  <div key={product.image} className="w-full min-w-0">
+                     <ProductCard product={product} />
                   </div>
-               </div>
+               ))}
 
-               {/* Property Card 2 */}
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <img
-                     src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop"
-                     alt="Property"
-                     className="h-56 w-full object-cover"
-                  />
+               {/* CHATBOT */}
+               <div className="flex min-h-[350px] w-full min-w-0 flex-col rounded-xl bg-gray-900 p-6 text-white shadow-lg">
+                  <h3 className="text-xl font-bold">Shopping Assistant</h3>
 
-                  <div className="p-5">
-                     <h3 className="text-2xl font-semibold text-gray-800">
-                        Luxury Apartment
-                     </h3>
+                  <p className="mt-2 text-sm text-gray-300">
+                     Ask about products, prices, orders, or recommendations.
+                  </p>
 
-                     <p className="text-gray-600 mt-2">
-                        Beautiful apartment located in a serene and secure
-                        environment.
-                     </p>
+                  <div className="mt-auto">
+                     <div className="mb-3 rounded-lg bg-gray-800 p-3 text-sm">
+                        Hello! How can I help you?
+                     </div>
 
-                     <button className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                        View Details
-                     </button>
+                     <div className="flex gap-2">
+                        <input
+                           type="text"
+                           placeholder="Ask something..."
+                           className="min-w-0 flex-1 rounded-lg px-3 py-2 text-black outline-none"
+                        />
+
+                        <button
+                           type="button"
+                           className="shrink-0 rounded-lg bg-white px-4 py-2 font-semibold text-black transition hover:bg-gray-200"
+                        >
+                           Send
+                        </button>
+                     </div>
                   </div>
-               </div>
-
-               {/* Property Card 3 */}
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <img
-                     src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
-                     alt="Property"
-                     className="h-56 w-full object-cover"
-                  />
-
-                  <div className="p-5">
-                     <h3 className="text-2xl font-semibold text-gray-800">
-                        Family House
-                     </h3>
-
-                     <p className="text-gray-600 mt-2">
-                        Spacious family home with modern interior finishing and
-                        garden.
-                     </p>
-
-                     <button className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                        View Details
-                     </button>
-                  </div>
-               </div>
-
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <img
-                     src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
-                     alt="Property"
-                     className="h-56 w-full object-cover"
-                  />
-
-                  <div className="p-5">
-                     <h3 className="text-2xl font-semibold text-gray-800">
-                        Beautiful Edifice
-                     </h3>
-
-                     <p className="text-gray-600 mt-2">
-                        Modern interior finishing and garden.
-                     </p>
-
-                     <button className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                        View Details
-                     </button>
-                  </div>
-               </div>
-
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <img
-                     src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
-                     alt="Property"
-                     className="h-56 w-full object-cover"
-                  />
-
-                  <div className="p-5">
-                     <h3 className="text-2xl font-semibold text-gray-800">
-                        Fantastic Edifice
-                     </h3>
-
-                     <p className="text-gray-600 mt-2">Visit Your Dream Home</p>
-
-                     <button className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                        View Details
-                     </button>
-                  </div>
-               </div>
-
-               <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                  <ChatGteway />
                </div>
             </div>
          </section>
       </div>
    );
-};
-
-export default Home;
+}
