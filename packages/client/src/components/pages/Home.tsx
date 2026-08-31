@@ -170,6 +170,11 @@ export default function Home() {
          </section>
          {/* FEATURED PRODUCTS - 3 COLUMNS */}
          <section className="w-full bg-stone-50 px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+            <div>
+               <h2 className="mb-8 text-2xl font-bold sm:text-3xl text-yellow-200 dark:text-sky-200 text-align: center">
+                  FEATURED PRODUCTS
+               </h2>
+            </div>
             <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                {featuredProducts.map((product) => (
                   <div key={product.image} className="w-full min-w-0">
