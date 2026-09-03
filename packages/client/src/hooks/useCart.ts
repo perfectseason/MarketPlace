@@ -1,19 +1,12 @@
 import { useState } from 'react';
-import apiClient from '../services/api-client';
 
-export interface CartItem {
-   id: number;
-   product: number;
-   product_name: string;
-   product_image?: string;
-   price: number;
-   quantity: number;
-   subtotal: number;
-}
+import cartService, { CartItem } from './services/cart-service';
 
 const useCart = () => {
    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
    const [isLoading, setIsLoading] = useState(false);
+
    const [error, setError] = useState('');
 
    // GET CART
@@ -22,37 +15,37 @@ const useCart = () => {
          setIsLoading(true);
          setError('');
 
-         const response = await apiClient.get('/cart/');
+         const response = await cartService.getCart();
 
          setCartItems(response.data);
-      } catch (err: any) {
+      } catch (error: any) {
          setError(
-            err.response?.data?.detail ||
-               err.response?.data?.message ||
-               'Unable to load cart'
+            error.response?.data?.detail ||
+               error.response?.data?.message ||
+               'Unable to load cart.'
          );
       } finally {
          setIsLoading(false);
       }
    };
 
-   // ADD ITEM TO CART
+   // ADD TO CART
    const addToCart = async (productId: number, quantity: number = 1) => {
       try {
          setIsLoading(true);
          setError('');
 
-         await apiClient.post('/cart/items/', {
+         await cartService.addItem({
             product: productId,
             quantity,
          });
 
          await getCart();
-      } catch (err: any) {
+      } catch (error: any) {
          setError(
-            err.response?.data?.detail ||
-               err.response?.data?.message ||
-               'Unable to add item to cart'
+            error.response?.data?.detail ||
+               error.response?.data?.message ||
+               'Unable to add product to cart.'
          );
       } finally {
          setIsLoading(false);
@@ -61,20 +54,22 @@ const useCart = () => {
 
    // UPDATE QUANTITY
    const updateQuantity = async (cartItemId: number, quantity: number) => {
+      if (quantity < 1) {
+         return;
+      }
+
       try {
          setIsLoading(true);
          setError('');
 
-         await apiClient.patch(`/cart/items/${cartItemId}/`, {
-            quantity,
-         });
+         await cartService.updateItem(cartItemId, { quantity });
 
          await getCart();
-      } catch (err: any) {
+      } catch (error: any) {
          setError(
-            err.response?.data?.detail ||
-               err.response?.data?.message ||
-               'Unable to update cart'
+            error.response?.data?.detail ||
+               error.response?.data?.message ||
+               'Unable to update cart.'
          );
       } finally {
          setIsLoading(false);
@@ -87,22 +82,36 @@ const useCart = () => {
          setIsLoading(true);
          setError('');
 
-         await apiClient.delete(`/cart/items/${cartItemId}/`);
+         await cartService.removeItem(cartItemId);
 
          await getCart();
-      } catch (err: any) {
+      } catch (error: any) {
          setError(
-            err.response?.data?.detail ||
-               err.response?.data?.message ||
-               'Unable to remove item'
+            error.response?.data?.detail ||
+               error.response?.data?.message ||
+               'Unable to remove item.'
          );
       } finally {
          setIsLoading(false);
       }
    };
 
+   // TOTAL ITEMS
+   const totalItems = cartItems.reduce(
+      (total, item) => total + item.quantity,
+      0
+   );
+
+   // TOTAL PRICE
+   const totalPrice = cartItems.reduce(
+      (total, item) => total + Number(item.subtotal),
+      0
+   );
+
    return {
       cartItems,
+      totalItems,
+      totalPrice,
       isLoading,
       error,
       getCart,
@@ -113,3 +122,102 @@ const useCart = () => {
 };
 
 export default useCart;
+
+// import { useEffect, useState } from "react";
+// import {
+//   cartService,
+//   Cart,
+// } from "../services/cart-service";
+
+// const useCart = () => {
+//   const [cart, setCart] = useState<Cart | null>(null);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [error, setError] = useState("");
+
+//   const loadCart = async () => {
+//     try {
+//       setIsLoading(true);
+
+//       const response = await cartService.getCart();
+
+//       setCart(response.data);
+
+//     } catch (error: any) {
+
+//       setError(
+//         error.response?.data?.detail ||
+//         "Unable to load cart."
+//       );
+
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const addToCart = async (
+//     productId: number,
+//     quantity = 1
+//   ) => {
+//     try {
+//       setIsLoading(true);
+
+//       const response =
+//         await cartService.addItem(
+//           productId,
+//           quantity
+//         );
+
+//       // THIS IS THE IMPORTANT PART
+//       setCart(response.data);
+
+//     } catch (error: any) {
+
+//       setError(
+//         error.response?.data?.detail ||
+//         "Unable to add item."
+//       );
+
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const updateQuantity = async (
+//     itemId: number,
+//     quantity: number
+//   ) => {
+
+//     const response =
+//       await cartService.updateItem(
+//         itemId,
+//         quantity
+//       );
+
+//     setCart(response.data);
+//   };
+
+//   const removeFromCart = async (
+//     itemId: number
+//   ) => {
+
+//     const response =
+//       await cartService.removeItem(itemId);
+
+//     setCart(response.data);
+//   };
+
+//   useEffect(() => {
+//     loadCart();
+//   }, []);
+
+//   return {
+//     cart,
+//     addToCart,
+//     updateQuantity,
+//     removeFromCart,
+//     isLoading,
+//     error,
+//   };
+// };
+
+// export default useCart;

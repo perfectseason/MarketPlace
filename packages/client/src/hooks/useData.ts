@@ -29,17 +29,19 @@ const useData = <T>(
             signal: controller.signal,
             ...requestConfig,
          })
-         .then((res) => {
-            setData(res.data.results);
+         .then((response) => {
+            setData(response.data.results);
          })
-         .catch((err) => {
-            if (err instanceof CanceledError) return;
+         .catch((error) => {
+            if (error instanceof CanceledError) {
+               return;
+            }
 
             setError(
-               err.response?.data?.detail ||
-                  err.response?.data?.message ||
-                  err.message ||
-                  'Something went wrong'
+               error.response?.data?.detail ||
+                  error.response?.data?.message ||
+                  error.message ||
+                  'Something went wrong.'
             );
          })
          .finally(() => {

@@ -1,6 +1,6 @@
-// customer enquiry form
 import { useState } from 'react';
-import apiClient from '../services/api-client';
+
+import chatbotService from '../services/chatbot-service';
 
 export interface ChatMessage {
    id: string;
@@ -10,15 +10,21 @@ export interface ChatMessage {
 
 const useChatbot = () => {
    const [messages, setMessages] = useState<ChatMessage[]>([]);
+
    const [isLoading, setIsLoading] = useState(false);
+
    const [error, setError] = useState('');
 
    const sendMessage = async (message: string) => {
+      if (!message.trim()) {
+         return;
+      }
+
       try {
          setIsLoading(true);
          setError('');
 
-         // Add user's message immediately
+         // Add customer message
          const userMessage: ChatMessage = {
             id: crypto.randomUUID(),
             role: 'user',
@@ -27,8 +33,8 @@ const useChatbot = () => {
 
          setMessages((previous) => [...previous, userMessage]);
 
-         // Send message to Django
-         const response = await apiClient.post('/chatbot/', {
+         // Send to Django
+         const response = await chatbotService.sendMessage({
             message,
          });
 
@@ -40,11 +46,11 @@ const useChatbot = () => {
          };
 
          setMessages((previous) => [...previous, assistantMessage]);
-      } catch (err: any) {
+      } catch (error: any) {
          setError(
-            err.response?.data?.detail ||
-               err.response?.data?.message ||
-               'Unable to contact chatbot'
+            error.response?.data?.detail ||
+               error.response?.data?.message ||
+               'The chatbot could not respond.'
          );
       } finally {
          setIsLoading(false);
