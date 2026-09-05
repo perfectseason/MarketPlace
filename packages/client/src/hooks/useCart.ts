@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import cartService, { CartItem } from './services/cart-service';
+import cartService, { type CartItem } from '../services/cart-services';
 
 const useCart = () => {
    const [cartItems, setCartItems] = useState<CartItem[]>([]);

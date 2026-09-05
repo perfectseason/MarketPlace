@@ -1,5 +1,5 @@
-import { Product } from '../services/product-service';
-import useCart from '../hooks/useCart';
+import { type Product } from '../../services/product-service';
+import useCart from '../../hooks/useCart';
 
 interface ProductCardProps {
    product: Product;

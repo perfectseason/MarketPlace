@@ -1,6 +1,9 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
+import useCart from '../../hooks/useCart';
+import { Button } from '../ui/button';
 
 type Product = {
+   id: number;
    image: string;
    name: string;
    price: string;
@@ -8,16 +11,19 @@ type Product = {
 
 const featuredProducts: Product[] = [
    {
+      id: 1,
       image: '/images/product1.jpg',
       name: 'Smart Watch',
       price: '$120',
    },
    {
+      id: 2,
       image: '/images/product2.jpg',
       name: 'Smart Watch',
       price: '$85',
    },
    {
+      id: 3,
       image: '/images/product3.jpg',
       name: 'Smart Watch',
       price: '$450',
@@ -26,21 +32,25 @@ const featuredProducts: Product[] = [
 
 const electronics: Product[] = [
    {
+      id: 4,
       image: '/images/product4.jpg',
       name: 'Iphone',
       price: '$850',
    },
    {
+      id: 5,
       image: '/images/product5.jpg',
       name: 'Iphone Pro',
       price: '$920',
    },
    {
+      id: 6,
       image: '/images/product6.jpg',
       name: 'Iphone Mini',
       price: '$550',
    },
    {
+      id: 7,
       image: '/images/product7.jpg',
       name: 'Tablet',
       price: '$320',
@@ -49,26 +59,31 @@ const electronics: Product[] = [
 
 const fashion: Product[] = [
    {
+      id: 8,
       image: '/images/product8.jpg',
       name: 'Sun glasses',
       price: '$95',
    },
    {
+      id: 9,
       image: '/images/product9.jpg',
       name: 'Sun glasses',
       price: '$130',
    },
    {
+      id: 10,
       image: '/images/product10.jpg',
       name: 'Watch',
       price: '$180',
    },
    {
+      id: 11,
       image: '/images/product11.jpg',
       name: 'Sun glasses',
       price: '$110',
    },
    {
+      id: 12,
       image: '/images/product12.jpg',
       name: 'Sunglasses',
       price: '$65',
@@ -77,23 +92,34 @@ const fashion: Product[] = [
 
 const homeCollection: Product[] = [
    {
+      id: 13,
       image: '/images/product13.jpg',
       name: 'Bag',
       price: '$440',
    },
    {
+      id: 14,
       image: '/images/product14.jpg',
       name: 'Travelers Bag',
       price: '$570',
    },
    {
+      id: 15,
       image: '/images/product15.jpg',
       name: 'Ladies Bag',
       price: '$320',
    },
 ];
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({
+   product,
+   onAddToCart,
+   isAdding,
+}: {
+   product: Product;
+   onAddToCart: (product: Product) => void;
+   isAdding: boolean;
+}) {
    return (
       <div className="w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
          {' '}
@@ -114,20 +140,48 @@ function ProductCard({ product }: { product: Product }) {
                {product.price}
             </p>
 
-            <button
+            <Button
                type="button"
-               className="mt-4 w-full rounded-lg bg-black px-4 py-2 font-medium text-white transition hover:bg-gray-700"
+               onClick={() => onAddToCart(product)}
+               disabled={isAdding}
+               className="mt-4 w-full bg-black px-4 py-2 font-medium text-white hover:bg-gray-700"
             >
-               Add to Cart
-            </button>
+               {isAdding ? 'Adding...' : 'Add to Cart'}
+            </Button>
          </div>
       </div>
    );
 }
 
 export default function Home() {
+   const { addToCart, isLoading, error } = useCart();
+   const [chatMessage, setChatMessage] = useState('');
+   const [chatResponse, setChatResponse] = useState(
+      'Hello! How can I help you?'
+   );
    const heroStyle: CSSProperties = {
       backgroundImage: "url('/images/Hero.jpg')",
+   };
+
+   const handleAddToCart = async (product: Product) => {
+      await addToCart(product.id, 1);
+   };
+
+   const handleShopNow = () => {
+      document.getElementById('featured-products')?.scrollIntoView({
+         behavior: 'smooth',
+      });
+   };
+
+   const handleChatSubmit = (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const message = chatMessage.trim();
+      if (!message) return;
+
+      setChatResponse(
+         'Thanks for your message. Our shopping assistant will help you shortly.'
+      );
+      setChatMessage('');
    };
 
    return (
@@ -156,12 +210,15 @@ export default function Home() {
                      Discover quality products at great prices.
                   </p>
 
-                  <button
+                  <Button
                      type="button"
-                     className="mt-5 rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200 sm:px-8 sm:py-4"
+                     variant="secondary"
+                     size="lg"
+                     onClick={handleShopNow}
+                     className="mt-5 bg-white px-6 py-3 font-semibold text-black hover:bg-gray-200 sm:px-8 sm:py-4"
                   >
                      Shop Now
-                  </button>
+                  </Button>
                </div>
             </div>
             <div className="mt-5 mb-5 w-full text-center text-xl font-bold uppercase tracking-wide text-slate-950 sm:text-2xl">
@@ -169,16 +226,23 @@ export default function Home() {
             </div>
          </section>
          {/* FEATURED PRODUCTS - 3 COLUMNS */}
-         <section className="w-full bg-stone-50 px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+         <section
+            id="featured-products"
+            className="w-full bg-stone-50 px-4 py-8 sm:px-6 md:px-8 lg:px-10"
+         >
             <div>
-               <h2 className="mb-8 text-2xl font-bold sm:text-3xl text-yellow-200 dark:text-sky-200 text-align: center">
+               <h2 className="mb-8 text-center text-2xl font-bold text-yellow-200 sm:text-3xl dark:text-sky-200">
                   FEATURED PRODUCTS
                </h2>
             </div>
             <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                {featuredProducts.map((product) => (
                   <div key={product.image} className="w-full min-w-0">
-                     <ProductCard product={product} />
+                     <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        isAdding={isLoading}
+                     />
                   </div>
                ))}
             </div>
@@ -190,7 +254,11 @@ export default function Home() {
             <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                {electronics.map((product) => (
                   <div key={product.image} className="w-full min-w-0">
-                     <ProductCard product={product} />
+                     <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        isAdding={isLoading}
+                     />
                   </div>
                ))}
             </div>
@@ -202,7 +270,11 @@ export default function Home() {
             <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                {fashion.map((product) => (
                   <div key={product.image} className="w-full min-w-0">
-                     <ProductCard product={product} />
+                     <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        isAdding={isLoading}
+                     />
                   </div>
                ))}
             </div>
@@ -216,7 +288,11 @@ export default function Home() {
             <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                {homeCollection.map((product) => (
                   <div key={product.image} className="w-full min-w-0">
-                     <ProductCard product={product} />
+                     <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        isAdding={isLoading}
+                     />
                   </div>
                ))}
 
@@ -230,26 +306,39 @@ export default function Home() {
 
                   <div className="mt-auto">
                      <div className="mb-3 rounded-lg bg-gray-800 p-3 text-sm">
-                        Hello! How can I help you?
+                        {chatResponse}
                      </div>
 
-                     <div className="flex gap-2">
+                     <form className="flex gap-2" onSubmit={handleChatSubmit}>
                         <input
                            type="text"
                            placeholder="Ask something..."
+                           value={chatMessage}
+                           onChange={(event) =>
+                              setChatMessage(event.target.value)
+                           }
                            className="min-w-0 flex-1 rounded-lg px-3 py-2 text-black outline-none"
                         />
 
-                        <button
-                           type="button"
-                           className="shrink-0 rounded-lg bg-white px-4 py-2 font-semibold text-black transition hover:bg-gray-200"
+                        <Button
+                           type="submit"
+                           variant="secondary"
+                           className="shrink-0 bg-white px-4 py-2 font-semibold text-black hover:bg-gray-200"
                         >
                            Send
-                        </button>
-                     </div>
+                        </Button>
+                     </form>
                   </div>
                </div>
             </div>
+            {error && (
+               <p
+                  className="mt-4 text-sm font-medium text-red-600"
+                  role="alert"
+               >
+                  {error}
+               </p>
+            )}
          </section>
       </div>
    );

@@ -63,4 +63,8 @@ function Button({
    );
 }
 
-export { Button, buttonVariants };
+// Keep the lowercase alias for existing imports while exposing the conventional
+// component name used throughout the application.
+const button = Button;
+
+export { Button, button, buttonVariants };

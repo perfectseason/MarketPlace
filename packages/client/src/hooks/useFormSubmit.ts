@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
 import formService, {
-   EnquiryData,
-   ContactData,
+   type EnquiryData,
+   type ContactData,
 } from '../services/form-service';
 
 const useFormSubmit = () => {

@@ -1,5 +1,5 @@
-import { FormEvent, useState } from 'react';
-import useFormSubmit from '../hooks/useFormSubmit';
+import { useState } from 'react';
+import useFormSubmit from '../../../hooks/useFormSubmit';
 
 const ContactForm = () => {
    const { submitContact, isSubmitting, success, error } = useFormSubmit();
@@ -9,7 +9,9 @@ const ContactForm = () => {
    const [phone, setPhone] = useState('');
    const [message, setMessage] = useState('');
 
-   const handleSubmit = async (event: FormEvent) => {
+   const handleSubmit = async (
+      event: React.SyntheticEvent<HTMLFormElement>
+   ) => {
       event.preventDefault();
 
       await submitContact({
@@ -23,19 +25,21 @@ const ContactForm = () => {
    return (
       <form onSubmit={handleSubmit}>
          <input
+            type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Your name"
          />
 
          <input
+            type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="Your email"
-            type="email"
          />
 
          <input
+            type="tel"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="Your phone"
